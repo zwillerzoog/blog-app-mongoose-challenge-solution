@@ -21,19 +21,6 @@ function seedBlogData() {
   return BlogPost.insertMany(seedData);
 }
 
-// function generateContent() {
-//   return {content: };
-// }
-
-// function generateAuthor() {
-//   return {author: 
-//   };
-// }
-
-// function generateTitle() {
-//   return ;
-// }
-
 function generatePostData() {
   return {
     title: faker.name.title(),
@@ -44,7 +31,6 @@ function generatePostData() {
     content: faker.lorem.text()
   };
 }
-
 
 function tearDownDb() {
   console.warn('About to delete DB');
@@ -122,6 +108,7 @@ describe('Blog Posts API resource', function () {
     it('should add a new blog post', function () {
 
       const newBlog = generatePostData();
+
       return chai.request(app)
         .post('/posts')
         .send(newBlog)
@@ -135,25 +122,26 @@ describe('Blog Posts API resource', function () {
           res.body.title.should.equal(newBlog.title);
           res.body.id.should.not.be.null;
           res.body.content.should.equal(newBlog.content);
-          res.body.author.should.equal(newBlog.author);
+          res.body.author.should.equal(newBlog.author.firstName + ' ' + newBlog.author.lastName);
 
           return BlogPost.findById(res.body.id);
         })
-        .then(function(res) {
-          res.body.title.should.equal(newBlog.title);
-          res.body.id.should.not.be.null;
-          res.body.content.should.equal(newBlog.content);
-          res.body.author.should.equal(newBlog.author);
+        .then(function(post) {
+          post.title.should.equal(newBlog.title);
+          post.content.should.equal(newBlog.content);
         });
     });
   });
 
   describe('PUT endpoint', function () {
 
-    it('should update fields you send over', function () {
+    it('should update blog post', function () {
       const updateData = {
         title: 'fofofofofofofof',
-        author: 'Michael Jackson'
+        author: {
+          firstName: 'Michael',
+          lastName: 'Jackson'
+        }
       };
 
       return BlogPost
@@ -166,12 +154,15 @@ describe('Blog Posts API resource', function () {
             .send(updateData);
         })
         .then(function (res) {
-          res.should.have.status(204);
+          res.should.have.status(201);
           return BlogPost.findById(updateData.id).exec();
         })
         .then(function (post) {
-          post.name.should.equal(updateData.title);
-          post.cuisine.should.equal(updateData.author);
+          console.log(post.author);
+          console.log(updateData.author);
+          post.title.should.equal(updateData.title);
+          // post.author.should.equal(updateData.author);
+          `${post.author.firstName} ${post.author.lastName}`.should.equal(updateData.author.firstName + ' ' +updateData.author.lastName);
         });
     });
   });
@@ -200,9 +191,3 @@ describe('Blog Posts API resource', function () {
   });
 
 });
-
-
-
-
-
-
